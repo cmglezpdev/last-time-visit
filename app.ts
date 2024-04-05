@@ -1,5 +1,5 @@
 import { Hono } from "https://deno.land/x/hono@v4.2.1/mod.ts";
-import { serveStatic } from "https://deno.land/x/hono@v4.2.1/middleware.ts";
+import { cors, serveStatic } from "https://deno.land/x/hono@v4.2.1/middleware.ts";
 import { streamSSE } from "https://deno.land/x/hono@v4.2.1/helper/streaming/index.ts";
 
 interface LastVisit {
@@ -12,10 +12,11 @@ const db = await Deno.openKv()
 const app = new Hono()
 let i = 0;
 
+app.use(cors())
 app.get('/', serveStatic({ path: './index.html' }))
 
 app.post('/visit', async (c) => {
-    const { country, city, flag } = await c.req.json()
+    const { country, city, flag } = await c.req.json<LastVisit>()
     await db
         .atomic()
         .set(['lastVisit'], { country, city, flag })
